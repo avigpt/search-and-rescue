@@ -1,10 +1,14 @@
+"""Generating Random Mountains"""
 import sys
 import random
 import csv
 
 def generate_random_mountain(n):
-    # n is size of mountain
-    # each cell (x,y) of the mountain has x as height and y as object density
+    """
+    Create random mountain of size n with cells that contain tuples of (height, obstacle_density)
+    Max Height is 20 and max obstacle density is 3
+    Returns a grid where each cell has (height, obstacle_density)
+    """
     height_range = 20
     obstacle_density = 3
     grid = [[(random.randint(0, height_range), random.randint(0, obstacle_density)) for j in range(n)] for i in range(n)]
@@ -26,6 +30,9 @@ def get_actions(rows, columns, row, column):
     return actions
 
 def get_reward(action, sp_cell, stranded_person=False):
+    """
+    Reward formula: height + density - fuel_cost + found
+    """
     if action == 1:
         action_r = -3
     if action == 2 or action == 4:
@@ -35,7 +42,7 @@ def get_reward(action, sp_cell, stranded_person=False):
     sp_height = sp_cell[0]
     sp_density = sp_cell[1]
     found = 10 if stranded_person else 0
-    return sp_height + sp_density + action_r + found  # height + density - fuel_cost + found
+    return sp_height + sp_density + action_r + found  
 
 def get_sp(cell_number, rows, action):
     if action == 1:
@@ -56,6 +63,9 @@ def get_sp_cell(sp_cell_number, rows, grid):
     
 
 def generate_mountain_data(grid):
+    """
+    Generate mountan_data grid where each column has the values of s, a, r, sp, d
+    """
     rows = len(grid)
     columns = len(grid[0])
     cell_number = 0
@@ -70,10 +80,7 @@ def generate_mountain_data(grid):
                 sp_cell = get_sp_cell(sp_cell_number, rows, grid)
                 r = get_reward(action, sp_cell, sp_cell == stranded_location)
                 cell_density = grid[i][j][1]
-                current_row = [cell_number, action, r, sp_cell_number, cell_density] # s, a, r, sp, d
-                print('cell number is ', cell_number)
-                print('action is ', action)
-                print(current_row)
+                current_row = [cell_number, action, r, sp_cell_number, cell_density] 
                 mountain_data.append(current_row)
             
     return mountain_data
