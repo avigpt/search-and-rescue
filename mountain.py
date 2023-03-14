@@ -5,13 +5,68 @@ import csv
 
 def generate_random_mountain(n):
     """
-    Create random mountain of size n with cells that contain tuples of (height, obstacle_density)
+    Create random mountain of size n with cells that contain tuples of (height, obstacle_density). 
+    Mountain was created by concatenating multiple 3x3 mountains with different heights.
     Max Height is 20 and max obstacle density is 3
     Returns a grid where each cell has (height, obstacle_density)
     """
+
+    iterations = n // 3
+    mod = n % 3
+    if mod != 0: 
+        extra_iter = iterations + 1
+    else:
+        extra_iter = iterations
+    main_grid = []
+    
+    
+    for iter in range(extra_iter):
+        current_grid_row = create_grid_row(iterations, mod)
+        if (mod != 0 and iter == (iterations - 1)):
+            current_grid_row = current_grid_row[3 - mod:]
+
+        cur_grid_len = len(main_grid) 
+        if cur_grid_len == 0:
+            main_grid = current_grid_row
+        else:
+            for k in range(len(current_grid_row)):
+                main_grid.append(current_grid_row[k])
+
+    
+    return main_grid
+
+
+def create_grid_row(iterations, mod):
+    current_row_grid = []
+    for _ in range(iterations):
+        grid = get_3x3_mountain()
+        if len(current_row_grid) == 0:
+            current_row_grid = grid
+        else:    
+            current_row_grid = [current_row_grid[i] + grid[i] for i in range(len(grid))]
+    
+    remainder_grid = get_3x3_mountain()
+    remainder = cut_grid(remainder_grid, mod)
+    current_row_grid = [r1 + r2 for r1, r2 in zip(current_row_grid, remainder)] 
+
+    return current_row_grid
+
+def cut_grid(grid, n):
+    """ 
+    Converts a AxA grid into Axn
+    """
+    return [row[:n] for row in grid]
+
+    
+
+def get_3x3_mountain():
     height_range = 20
     obstacle_density = 3
-    grid = [[(random.randint(0, height_range), random.randint(0, obstacle_density)) for j in range(n)] for i in range(n)]
+    peak = random.randint(2, height_range)
+    grid = [[(peak - 2, random.randint(0, obstacle_density)), (peak - 1, random.randint(0, obstacle_density)), (peak - 2, random.randint(0, obstacle_density))],
+            [(peak - 1, random.randint(0, obstacle_density)), (peak, random.randint(0, obstacle_density)), (peak - 1, random.randint(0, obstacle_density))],
+            [(peak - 2, random.randint(0, obstacle_density)), (peak - 1, random.randint(0, obstacle_density)), (peak - 2, random.randint(0, obstacle_density))]]
+    
     return grid
 
 def generate_stranded_person_location(rows, columns):
@@ -71,6 +126,8 @@ def generate_mountain_data(grid):
     cell_number = 0
     mountain_data = []
     stranded_location = generate_stranded_person_location(rows, columns)
+    print('Stranded location in mountain is in cell number', stranded_location, ' (starts with 1)')
+     
     for i in range(rows):
         for j in range(columns):
             cell_number += 1
@@ -98,9 +155,15 @@ def main():
         raise Exception("Usage: python3 mountain.py <mountain_size>")
     
     mountain_size = int(sys.argv[1])
+    print('Mountain of size ', mountain_size, '...')
     grid = generate_random_mountain(mountain_size)
+    for g in grid:
+        print(g)
+        print('\n')
+    print('Generating mountain data')
     mountain_data = generate_mountain_data(grid)
     generate_mountain_csv(mountain_data, mountain_size)
+    print('Mountain data generated')
 
 if __name__ == "__main__":
     main()
