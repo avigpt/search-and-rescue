@@ -2,6 +2,9 @@
 import sys
 import random
 import csv
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 def generate_random_mountain(n):
     """
@@ -149,21 +152,39 @@ def generate_mountain_csv(mountain_data, filename):
         writer.writerow(['s', 'a', 'r', 'sp', 'density'])
         writer.writerows(mountain_data)
     
+def get_heights(grid):
+    all_heights = []
+    prev_max_height = 0
+    for sector in grid:
+        list_heights = [height for height, density in sector]
+        curr_max_height = max(list_heights)
+        if curr_max_height > prev_max_height:
+            prev_max_height = curr_max_height
+        all_heights.append(list_heights)
+    return all_heights, prev_max_height
+    
+def plot_mountain_height(grid, peak):
+    data_set = np.asarray(grid)
+    colormap = sns.color_palette("mako", peak)
+    ax = sns.heatmap(data_set, linewidths = 0.5, cmap = colormap)
+    plt.title('Mountain Terrain Heat Map')
+    plt.show()
 
 def main():
     if len(sys.argv) != 2:
         raise Exception("Usage: python3 mountain.py <mountain_size>")
     
     mountain_size = int(sys.argv[1])
-    print('Mountain of size ', mountain_size, '...')
+    print('Mountain of size', mountain_size, '...')
     grid = generate_random_mountain(mountain_size)
-    for g in grid:
-        print(g)
-        print('\n')
+    all_heights = get_heights(grid)
+
     print('Generating mountain data')
     mountain_data = generate_mountain_data(grid)
     generate_mountain_csv(mountain_data, mountain_size)
+
     print('Mountain data generated')
+    plot_mountain_height(all_heights[0], all_heights[1])
 
 if __name__ == "__main__":
     main()

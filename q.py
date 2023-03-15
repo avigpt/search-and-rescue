@@ -1,4 +1,6 @@
 """Implementation of Q-Learning"""
+import math
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import sys
@@ -49,10 +51,35 @@ def learn(data):
         epoch += 1
 
 def write_policy(filename):
+    plot_actions = []
     max_actions_i = np.argmax(q_table, axis=1)
     with open(filename, 'w') as f:
         for action in max_actions_i:
+            plot_actions.append(action)
             f.write(f"{action + 1}\n")
+    return plot_actions
+
+def get_policy_grid(policy):
+    actions_as_grid = []
+    action_row = []
+    row_len = math.sqrt(len(policy))
+
+    for i in range(len(policy) + 1):
+        if (not(i % row_len) and i != 0):
+            actions_as_grid.append(action_row)
+            action_row = []
+        if (i != len(policy)):
+            action_row.append(policy[i])
+    return actions_as_grid
+
+def plot_policy(policy_as_grid):
+    arrows = {2: (1,0), 4: (-1, 0), 1: (0, 1), 3: (0, -1)}
+    scale = 0.25
+    fig, ax = plt.subplots(figsize=(6, 6))
+    for r, row in enumerate(policy_as_grid):
+        for c, cell in enumerate(row):
+            plt.arrow(c, 5-r, scale*arrows[cell + 1][0], scale*arrows[cell + 1][1], head_width = 0.1)
+    plt.show()
 
 def main():
     if len(sys.argv) != 3:
@@ -62,9 +89,11 @@ def main():
     data = pd.read_csv("data/" + infile)
     populate_actions(data)
     learn(data)
-    write_policy(sys.argv[2])
+    policy = write_policy(sys.argv[2])
     end = time.time()
     print("Time: ", end - start)
+    policy_as_grid = get_policy_grid(policy)
+    plot_policy(policy_as_grid)
 
 if __name__ == "__main__":
     main()
