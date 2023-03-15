@@ -145,7 +145,7 @@ def generate_mountain_data(grid):
                 current_row = [cell_number, action, r, sp_cell_number, cell_density] 
                 mountain_data.append(current_row)
             
-    return mountain_data
+    return mountain_data, stranded_location
 
 def generate_mountain_csv(mountain_data, filename):
     filename = './data/' + str(filename) + '_mountain_data.csv'
@@ -154,22 +154,37 @@ def generate_mountain_csv(mountain_data, filename):
         writer.writerow(['s', 'a', 'r', 'sp', 'd'])
         writer.writerows(mountain_data)
     
-def get_heights(grid):
+def get_heights_densities(grid):
     all_heights = []
+    all_densities = []
     prev_max_height = 0
+    prev_max_density = 0
     for sector in grid:
         list_heights = [height for height, density in sector]
+        list_densities = [density for height, density in sector]
         curr_max_height = max(list_heights)
+        curr_max_density = max(list_densities)
         if curr_max_height > prev_max_height:
             prev_max_height = curr_max_height
+        if curr_max_density > prev_max_density:
+            prev_max_density = curr_max_density
         all_heights.append(list_heights)
-    return all_heights, prev_max_height
+        all_densities.append(list_densities)
+    return all_heights, prev_max_height, all_densities, prev_max_density
     
-def plot_mountain_height(grid, peak):
+def plot_mountain_height(grid, peak, stranded_location):
     data_set = np.asarray(grid)
     colormap = sns.color_palette("mako", peak)
-    ax = sns.heatmap(data_set, linewidths = 0.5, cmap = colormap)
-    plt.title('Mountain Terrain Heat Map')
+    ax = sns.heatmap(data_set, linewidths = 0.5, cmap = colormap, annot = True)
+    plt.title('Mountain Terrain Height Heat Map')
+    plt.show()
+
+def plot_mountain_density(grid, peak, stranded_location):
+    data_set = np.asarray(grid)
+    colormap = sns.color_palette("mako", peak)
+    ax = sns.heatmap(data_set, linewidths = 0.5, cmap = colormap, annot = True)
+
+    plt.title('Mountain Terrain Density Heat Map')
     plt.show()
 
 def main():
@@ -179,14 +194,15 @@ def main():
     mountain_size = int(sys.argv[1])
     print('Mountain of size', mountain_size, '...')
     grid = generate_random_mountain(mountain_size)
-    all_heights = get_heights(grid)
+    all_heights = get_heights_densities(grid)
 
     print('Generating mountain data')
     mountain_data = generate_mountain_data(grid)
-    generate_mountain_csv(mountain_data, mountain_size)
+    generate_mountain_csv(mountain_data[0], mountain_size)
 
     print('Mountain data generated')
-    plot_mountain_height(all_heights[0], all_heights[1])
+    plot_mountain_height(all_heights[0], all_heights[1], mountain_data[1])
+    plot_mountain_density(all_heights[2], all_heights[3], mountain_data[1])
 
 if __name__ == "__main__":
     main()

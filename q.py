@@ -77,6 +77,7 @@ def plot_policy(policy_as_grid):
     for r, row in enumerate(policy_as_grid):
         for c, cell in enumerate(row):
             plt.arrow(c, 5-r, scale*arrows[cell + 1][0], scale*arrows[cell + 1][1], head_width = 0.1)
+    plt.title('Q-Learning Generated Policy')
     plt.show()
 
 def main():
