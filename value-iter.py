@@ -79,11 +79,11 @@ def value_iteration():
     """
     U_s = [0.0] * num_states
     for _ in range(NUM_EPOCHS):
-        for s in range(1, num_states):
+        for s in range(1, num_states + 1):
             U_s[s - 1] = update(s, U_s)
 
 def write_policy(filename):
-    with open(filename, 'w') as f:
+    with open(f"policies/{filename}", 'w') as f:
         for s in policy:
             f.write(f"{policy[s]}\n")
 def main():

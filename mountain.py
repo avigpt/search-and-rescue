@@ -6,6 +6,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+FOUND_REWARD = 20
+
 def generate_random_mountain(n):
     """
     Create random mountain of size n with cells that contain tuples of (height, obstacle_density). 
@@ -99,7 +101,7 @@ def get_reward(action, sp_cell, stranded_person=False):
         action_r = -1
     sp_height = sp_cell[0]
     sp_density = sp_cell[1]
-    found = 10 if stranded_person else 0
+    found = FOUND_REWARD if stranded_person else 0
     return sp_height + sp_density + action_r + found  
 
 def get_sp(cell_number, rows, action):
@@ -149,7 +151,7 @@ def generate_mountain_csv(mountain_data, filename):
     filename = './data/' + str(filename) + '_mountain_data.csv'
     with open(filename, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(['s', 'a', 'r', 'sp', 'density'])
+        writer.writerow(['s', 'a', 'r', 'sp', 'd'])
         writer.writerows(mountain_data)
     
 def get_heights(grid):
