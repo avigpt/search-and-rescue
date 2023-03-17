@@ -7,7 +7,7 @@ import sys
 import time
 
 NUM_ACTIONS = 4
-DISC = 0.95
+DISC = 0.9
 NUM_EPOCHS = 100
 LEARN_RATE = 0.1
 DIFF = 0.001
