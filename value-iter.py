@@ -28,7 +28,7 @@ def parse_data(data):
     for _, row in data.iterrows():
         s = row['s']
         a = row['a']
-        r = row['s']
+        r = row['r']
         sp = row['sp']
         d = row['d']
 
@@ -81,8 +81,13 @@ def value_iteration():
     """
     U_s = [0.0] * num_states
     for _ in range(NUM_EPOCHS):
+        max_diff = 0
         for s in range(1, num_states + 1):
-            U_s[s - 1] = update(s, U_s)
+            new_u = update(s, U_s)
+            max_diff = max(max_diff, abs(new_u - U_s[s - 1]))
+            U_s[s - 1] = new_u
+        if max_diff <= 0.005: 
+            break # convergence
 
 def write_policy(filename):
     plot_actions = []
