@@ -2,6 +2,11 @@
 import sys
 import random
 import csv
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+FOUND_REWARD = 20
 
 def generate_random_mountain(n):
     """
@@ -70,7 +75,7 @@ def get_3x3_mountain():
     return grid
 
 def generate_stranded_person_location(rows, columns):
-    return random.randint(0, rows * columns)
+    return random.randint(1, rows * columns)
 
 def get_actions(rows, columns, row, column):
     actions = [1,2,3,4]
@@ -96,7 +101,7 @@ def get_reward(action, sp_cell, stranded_person=False):
         action_r = -1
     sp_height = sp_cell[0]
     sp_density = sp_cell[1]
-    found = 10 if stranded_person else 0
+    found = FOUND_REWARD if stranded_person else 0
     return sp_height + sp_density + action_r + found  
 
 def get_sp(cell_number, rows, action):
@@ -135,35 +140,69 @@ def generate_mountain_data(grid):
             for action in actions:
                 sp_cell_number = get_sp(cell_number, rows, action)
                 sp_cell = get_sp_cell(sp_cell_number, rows, grid)
-                r = get_reward(action, sp_cell, sp_cell == stranded_location)
+                r = get_reward(action, sp_cell, sp_cell_number == stranded_location)
                 cell_density = grid[i][j][1]
                 current_row = [cell_number, action, r, sp_cell_number, cell_density] 
                 mountain_data.append(current_row)
             
-    return mountain_data
+    return mountain_data, stranded_location
 
 def generate_mountain_csv(mountain_data, filename):
     filename = './data/' + str(filename) + '_mountain_data.csv'
     with open(filename, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(['s', 'a', 'r', 'sp', 'density'])
+        writer.writerow(['s', 'a', 'r', 'sp', 'd'])
         writer.writerows(mountain_data)
     
+def get_heights_densities(grid):
+    all_heights = []
+    all_densities = []
+    prev_max_height = 0
+    prev_max_density = 0
+    for sector in grid:
+        list_heights = [height for height, density in sector]
+        list_densities = [density for height, density in sector]
+        curr_max_height = max(list_heights)
+        curr_max_density = max(list_densities)
+        if curr_max_height > prev_max_height:
+            prev_max_height = curr_max_height
+        if curr_max_density > prev_max_density:
+            prev_max_density = curr_max_density
+        all_heights.append(list_heights)
+        all_densities.append(list_densities)
+    return all_heights, prev_max_height, all_densities, prev_max_density
+    
+def plot_mountain_height(grid, peak, stranded_location):
+    data_set = np.asarray(grid)
+    colormap = sns.color_palette("mako", peak)
+    ax = sns.heatmap(data_set, linewidths = 0.5, cmap = colormap, annot = True)
+    plt.title('Mountain Terrain Height Heat Map')
+    plt.show()
+
+def plot_mountain_density(grid, peak, stranded_location):
+    data_set = np.asarray(grid)
+    colormap = sns.color_palette("mako", peak)
+    ax = sns.heatmap(data_set, linewidths = 0.5, cmap = colormap, annot = True)
+
+    plt.title('Mountain Terrain Density Heat Map')
+    plt.show()
 
 def main():
     if len(sys.argv) != 2:
         raise Exception("Usage: python3 mountain.py <mountain_size>")
     
     mountain_size = int(sys.argv[1])
-    print('Mountain of size ', mountain_size, '...')
+    print('Mountain of size', mountain_size, '...')
     grid = generate_random_mountain(mountain_size)
-    for g in grid:
-        print(g)
-        print('\n')
+    all_heights = get_heights_densities(grid)
+
     print('Generating mountain data')
     mountain_data = generate_mountain_data(grid)
-    generate_mountain_csv(mountain_data, mountain_size)
+    generate_mountain_csv(mountain_data[0], mountain_size)
+
     print('Mountain data generated')
+    plot_mountain_height(all_heights[0], all_heights[1], mountain_data[1])
+    plot_mountain_density(all_heights[2], all_heights[3], mountain_data[1])
 
 if __name__ == "__main__":
     main()
