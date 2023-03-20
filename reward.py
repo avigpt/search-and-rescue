@@ -4,7 +4,7 @@ import pandas as pd
 import sys
 import random
 
-NUM_TRIALS = 10000
+NUM_TRIALS = 100000
 
 def read_policy(policy_data):
     state = 1
@@ -25,15 +25,13 @@ def create_rewards_dict(states_data):
 def generate_trials(actions_dict, rewards_dict, terminal_state):
     reach_skier = len(actions_dict) // 2
     total_reward = 0
-    for i in range(NUM_TRIALS):
-        state = random.randint(1, 9)
-        for j in range(reach_skier):
+    for _ in range(NUM_TRIALS):
+        state = random.randint(1, len(actions_dict))
+        for _ in range(reach_skier):
             action = actions_dict[state]
             reward, next_state = rewards_dict[state, action]
             total_reward += reward
             state = next_state
-            if state == terminal_state:
-                break
     return total_reward / NUM_TRIALS
     
 def generate_random(num_states):
