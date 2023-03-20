@@ -13,7 +13,7 @@ MAX_DENSITY = 3
 
 num_states = None # number of states
 actions_from_state = {} # {state -> possible actions in data}
-new_states_from_state = {} # {state -> possible next states}
+sp_from_sa = {} # {state -> {action -> next state}}
 rewards = {} # {state -> {action -> reward}}
 density = {} # {state -> object density}
 policy = {} # {state -> best action}
@@ -36,9 +36,9 @@ def parse_data(data):
             actions_from_state[s] = set()
         actions_from_state[s].add(a)
 
-        if s not in new_states_from_state:
-            new_states_from_state[s] = set()
-        new_states_from_state[s].add(sp)
+        if s not in sp_from_sa:
+            sp_from_sa[s] = {}
+        sp_from_sa[s][a] = sp
 
         if s not in rewards:
             rewards[s] = {}
@@ -46,12 +46,16 @@ def parse_data(data):
 
         density[s] = d
 
-    if len(actions_from_state) != len(new_states_from_state) or len(actions_from_state) != len(rewards):
+    if len(actions_from_state) != len(sp_from_sa) or len(actions_from_state) != len(rewards):
         raise Exception("Error parsing data: number of states mismatched.")
     global num_states
     num_states = len(actions_from_state)
 
 def T(sp):
+    """
+    Returns transition probability of going into state 'sp' based on density.
+    Caller must ensure it is possible to move into 'sp' from some state and action.
+    """
     return 0.5 if density[sp] >= MAX_DENSITY - 1 else 1
 
 def update(s, U_s):
@@ -60,14 +64,11 @@ def update(s, U_s):
     """
     max_u = float('-inf')
     a_max = None
-    # print(U_s)
     for a in actions_from_state[s]:
-        future = 0
-        for sp in new_states_from_state[s]:
-            tr = T(sp)
-            # print(sp)
-            u_sp = U_s[sp - 1]
-            future += tr * u_sp
+        sp = sp_from_sa[s][a] # can only transition to one state
+        tr = T(sp)
+        u_sp = U_s[sp - 1]
+        future = tr * u_sp
         u = rewards[s][a] + (DISC * future)
         if u > max_u:
             max_u = u

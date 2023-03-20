@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-FOUND_REWARD = 20
+FOUND_REWARD = 50
 
 def generate_random_mountain(n):
     """
