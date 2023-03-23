@@ -1,4 +1,4 @@
-"""Implementation of Gauss-Seidel Value Iteration"""
+"""Implementation of Value Iteration"""
 import math
 import matplotlib.pyplot as plt
 import numpy as np

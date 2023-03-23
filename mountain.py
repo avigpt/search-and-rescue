@@ -89,20 +89,24 @@ def get_actions(rows, columns, row, column):
         actions.remove(2)
     return actions
 
-def get_reward(action, sp_cell, stranded_person=False):
+def get_reward(s_cell, sp_cell, stranded_person=False):
     """
-    Reward formula: height + density - fuel_cost + found
+    Reward formula: height + density - fuel_cost + found.
+    Fuel cost determined by the elevation that the UAV moves. 
     """
-    if action == 1:
-        action_r = -3
-    if action == 2 or action == 4:
-        action_r = -2
-    if action == 3:
-        action_r = -1
+    # fuel cost
+    s_height = s_cell[0]
     sp_height = sp_cell[0]
+    if sp_height - s_height > 0: # ascending
+        fuel_cost = -3
+    elif sp_height - s_height < 0: # descending
+        fuel_cost = -1
+    else: # lateral movement
+        fuel_cost = -2
+    
     sp_density = sp_cell[1]
     found = FOUND_REWARD if stranded_person else 0
-    return sp_height + sp_density + action_r + found  
+    return sp_height + sp_density + fuel_cost + found  
 
 def get_sp(cell_number, rows, action):
     if action == 1:
@@ -115,12 +119,11 @@ def get_sp(cell_number, rows, action):
         cell_number -= 1
     return cell_number
 
-def get_sp_cell(sp_cell_number, rows, grid):
-    sp_cell_number -= 1
-    sp_i = sp_cell_number // rows
-    sp_j = sp_cell_number % rows
-    return grid[sp_i][sp_j]
-    
+def get_cell(cell_number, rows, grid):
+    cell_number -= 1
+    i = cell_number // rows
+    j = cell_number % rows
+    return grid[i][j]
 
 def generate_mountain_data(grid):
     """
@@ -139,8 +142,9 @@ def generate_mountain_data(grid):
             actions = get_actions(rows, columns, i, j)
             for action in actions:
                 sp_cell_number = get_sp(cell_number, rows, action)
-                sp_cell = get_sp_cell(sp_cell_number, rows, grid)
-                r = get_reward(action, sp_cell, sp_cell_number == stranded_location)
+                s_cell = get_cell(cell_number, rows, grid)
+                sp_cell = get_cell(sp_cell_number, rows, grid)
+                r = get_reward(s_cell, sp_cell, sp_cell_number == stranded_location)
                 cell_density = grid[i][j][1]
                 current_row = [cell_number, action, r, sp_cell_number, cell_density] 
                 mountain_data.append(current_row)
